@@ -6,13 +6,29 @@ using UnityEngine.UI;
 
 public class InputPointCoords : MonoBehaviour
 {
-    public InputField inputField;
+    public InputField pointNameInputField;
+    public InputField pointCoordsInputField;
     public GameObject pointPrefab;
     public Button createPointButton;
+    public GameObject pointsParent;
+    //public Dictionary<string, GameObject> pointsDict;
+
+    private Dictionary<string, GameObject> pointsDict = new Dictionary<string, GameObject>();
     
+    bool isValidPointName (string wantedName)
+    {
+        return wantedName.Length > 0 && char.IsLetter(wantedName[0]);
+    }
+
     bool ParseAndInstantiatePoint ()
     {
-        string query = inputField.text;
+        string wantedName = pointNameInputField.text;
+        if ((wantedName == "") || (pointsDict.ContainsKey(wantedName)) || (!isValidPointName(wantedName)))
+        {
+            UnityEngine.Debug.Log("bad point name!!");
+            return false;
+        }
+        string query = pointCoordsInputField.text;
         query = query.Trim();
         if (query.Substring(0, 1) != "(")
         {
@@ -44,7 +60,11 @@ public class InputPointCoords : MonoBehaviour
         }
         Vector3 pointCoords = new Vector3((float) xCoord, (float) yCoord, (float) zCoord);
         GameObject point = Instantiate(pointPrefab, pointCoords, Quaternion.identity);
-        inputField.text = "";
+        pointsDict[wantedName] = point;
+        point.name = "Point " + wantedName;
+        point.transform.parent = pointsParent.transform;
+        pointNameInputField.text = "";
+        pointCoordsInputField.text = "";
         return true;
     }
 
