@@ -15,16 +15,49 @@ public class InputPointCoords : MonoBehaviour
     public Button createLineSegmentButton;
     public GameObject lineSegmentsParent;
     public GameObject lineSegmentPrefab;
+
+    public Material highlightMaterial;
+    private GameObject currentlyHighlightedObject = null;
+    private Material currentlyHighlightedObjectMaterial;
+
     public Camera cameraObject;
 
     //private Dictionary<string, GameObject> pointsDict = new Dictionary<string, GameObject>();
     private Dictionary<GameObject, string> pointsDict = new Dictionary<GameObject, string>();
+    private Dictionary<GameObject, string> lineSegmentsDict = new Dictionary<GameObject, string>();
+
     private int createLineSegmentMode = 0;
     private GameObject firstLineSegmentSegment;
+
+    void HighlightObject (Transform objT)
+    {
+        if (((objT == null) && (currentlyHighlightedObject == null)) || (((objT) && (currentlyHighlightedObject)) && (objT == currentlyHighlightedObject.transform)))
+        {
+            return;
+        }
+        if (currentlyHighlightedObject)
+        {
+            currentlyHighlightedObject.GetComponent<Renderer>().material = currentlyHighlightedObjectMaterial;
+            currentlyHighlightedObject = null;
+            currentlyHighlightedObjectMaterial = null;
+        }
+        if (!objT)
+        {
+            return;
+        }
+        GameObject obj = objT.gameObject;
+        if ((pointsDict.ContainsKey(obj)) || (lineSegmentsDict.ContainsKey(obj)))
+        {
+            currentlyHighlightedObjectMaterial = obj.GetComponent<Renderer>().material;
+            currentlyHighlightedObject = obj;
+            obj.GetComponent<Renderer>().material = highlightMaterial;
+        }
+    }
 
     void HandleMouse (bool mouseWasClicked)
     {
         Transform mouseHitTransform = GetMousePointerObject();
+        HighlightObject(mouseHitTransform);
         if (mouseHitTransform)
         {
             GameObject mouseHitObject = mouseHitTransform.gameObject;
@@ -49,6 +82,7 @@ public class InputPointCoords : MonoBehaviour
                         }
                         Vector3[] lineSegmentPositons = new Vector3[] { firstLineSegmentSegment.transform.position, mouseHitObject.transform.position };
                         GameObject lineSegmentObject = Instantiate(lineSegmentPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+                        lineSegmentsDict[lineSegmentObject] = "temporary name";
                         lineSegmentObject.GetComponent<LineRenderer>().SetPositions(lineSegmentPositons);
                         lineSegmentObject.transform.parent = lineSegmentsParent.transform;
                         createLineSegmentMode = 0;

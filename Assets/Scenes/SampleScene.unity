@@ -1359,6 +1359,7 @@ MonoBehaviour:
   lineSegmentsParent: {fileID: 1041810082}
   lineSegmentPrefab: {fileID: 1944510612667673997, guid: 6de58e0f65ae1984e8ec7c93bdcf204a,
     type: 3}
+  highlightMaterial: {fileID: 2100000, guid: 59458e6ec382f8c45abf8a98d1b555b1, type: 2}
   cameraObject: {fileID: 963194227}
 --- !u!4 &1875665771
 Transform:
