@@ -54,6 +54,19 @@ public class InputPointCoords : MonoBehaviour
         }
     }
 
+    void CreateLineSegment (GameObject mouseHitObject)
+    {
+        Vector3[] lineSegmentPositons = new Vector3[] { firstLineSegmentSegment.transform.position, mouseHitObject.transform.position };
+        GameObject lineSegmentObject = Instantiate(lineSegmentPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+        lineSegmentsDict[lineSegmentObject] = "temporary name";
+        lineSegmentObject.GetComponent<LineRenderer>().SetPositions(lineSegmentPositons);
+        lineSegmentObject.transform.parent = lineSegmentsParent.transform;
+
+        lineSegmentObject.GetComponent<LineSegmentMesh>().CreateLineSegmentMesh(lineSegmentObject, firstLineSegmentSegment, mouseHitObject, 8);
+
+        createLineSegmentMode = 0;
+    }
+
     void HandleMouse (bool mouseWasClicked)
     {
         Transform mouseHitTransform = GetMousePointerObject();
@@ -80,12 +93,7 @@ public class InputPointCoords : MonoBehaviour
                             UnityEngine.Debug.Log("Cannot have second segment as same point!");
                             return;
                         }
-                        Vector3[] lineSegmentPositons = new Vector3[] { firstLineSegmentSegment.transform.position, mouseHitObject.transform.position };
-                        GameObject lineSegmentObject = Instantiate(lineSegmentPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-                        lineSegmentsDict[lineSegmentObject] = "temporary name";
-                        lineSegmentObject.GetComponent<LineRenderer>().SetPositions(lineSegmentPositons);
-                        lineSegmentObject.transform.parent = lineSegmentsParent.transform;
-                        createLineSegmentMode = 0;
+                        CreateLineSegment(mouseHitObject);
                     }
                 }
             }
