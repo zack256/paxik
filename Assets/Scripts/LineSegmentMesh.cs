@@ -21,19 +21,40 @@ public class LineSegmentMesh : MonoBehaviour
 
         Vector3 A = firstPoint.transform.position;
         Vector3 B = secondPoint.transform.position;
+
         Vector3 AB = B - A;
         float d = Vector3.Dot(AB, A);
 
         Vector3 C;
         if (A.z != B.z)
         {
-            C = new Vector3(0, 0, d / AB.z);
+            if (A.x == 0 && A.y == 0)
+            {
+                C = new Vector3(1, 1, (d - AB.x - AB.y) / AB.z);
+            } else
+            {
+                C = new Vector3(0, 0, d / AB.z);
+            }
         } else if (A.y != B.y)
         {
-            C = new Vector3(0, d / AB.y, 0);
+            if (A.x == 0 && A.z == 0)
+            {
+                C = new Vector3(1, (d - AB.x - AB.z) / AB.y, 1);
+            }
+            else
+            {
+                C = new Vector3(0, d / AB.y, 0);
+            }
         } else
         {
-            C = new Vector3(d / AB.x, 0, 0);
+            if (A.y == 0 && A.z == 0)
+            {
+                C = new Vector3((d - AB.y - AB.z) / AB.x, 1, 1);
+            }
+            else
+            {
+                C = new Vector3(d / AB.x, 0, 0);
+            }
         }
 
         Vector3 AC = C - A;
