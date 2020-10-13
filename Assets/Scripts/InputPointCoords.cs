@@ -19,6 +19,7 @@ public class InputPointCoords : MonoBehaviour
     public Material highlightMaterial;
     private GameObject currentlyHighlightedObject = null;
     private Material currentlyHighlightedObjectMaterial;
+    private Color currentlyHighlightedLineColor;
 
     public Camera cameraObject;
 
@@ -29,6 +30,13 @@ public class InputPointCoords : MonoBehaviour
     private int createLineSegmentMode = 0;
     private GameObject firstLineSegmentSegment;
 
+    void ColorLineSegment (GameObject lineSegment, Color color)
+    {
+        //lineSegment.GetComponent<LineRenderer>().SetColors(color, color);
+        lineSegment.GetComponent<LineRenderer>().startColor = color;
+        lineSegment.GetComponent<LineRenderer>().endColor = color;
+    }
+
     void HighlightObject (Transform objT)
     {
         if (((objT == null) && (currentlyHighlightedObject == null)) || (((objT) && (currentlyHighlightedObject)) && (objT == currentlyHighlightedObject.transform)))
@@ -37,9 +45,17 @@ public class InputPointCoords : MonoBehaviour
         }
         if (currentlyHighlightedObject)
         {
-            currentlyHighlightedObject.GetComponent<Renderer>().material = currentlyHighlightedObjectMaterial;
+            if (lineSegmentsDict.ContainsKey(currentlyHighlightedObject))
+            {
+                //currentlyHighlightedObject.GetComponent<LineRenderer>().SetColors(currentlyHighlightedLineColor, currentlyHighlightedLineColor);
+                ColorLineSegment(currentlyHighlightedObject, currentlyHighlightedLineColor);
+                currentlyHighlightedLineColor = new Color (0, 0, 0, 0);
+            } else
+            {
+                currentlyHighlightedObject.GetComponent<Renderer>().material = currentlyHighlightedObjectMaterial;
+                currentlyHighlightedObjectMaterial = null;
+            }
             currentlyHighlightedObject = null;
-            currentlyHighlightedObjectMaterial = null;
         }
         if (!objT)
         {
@@ -48,9 +64,16 @@ public class InputPointCoords : MonoBehaviour
         GameObject obj = objT.gameObject;
         if ((pointsDict.ContainsKey(obj)) || (lineSegmentsDict.ContainsKey(obj)))
         {
-            currentlyHighlightedObjectMaterial = obj.GetComponent<Renderer>().material;
+            if (pointsDict.ContainsKey(obj))
+            {
+                currentlyHighlightedObjectMaterial = obj.GetComponent<Renderer>().material;
+                obj.GetComponent<Renderer>().material = highlightMaterial;
+            } else
+            {
+                currentlyHighlightedLineColor = obj.GetComponent<LineRenderer>().startColor;
+                ColorLineSegment(obj, highlightMaterial.color);
+            }
             currentlyHighlightedObject = obj;
-            obj.GetComponent<Renderer>().material = highlightMaterial;
         }
     }
 
