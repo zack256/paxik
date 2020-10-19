@@ -16,6 +16,11 @@ public class InputPointCoords : MonoBehaviour
     public GameObject lineSegmentsParent;
     public GameObject lineSegmentPrefab;
 
+    public InputField functionNameInputField;
+    public InputField functionInputField;
+    public Button createFunctionButton;
+    public GameObject functionsParent;
+
     public Material highlightMaterial;
     private GameObject currentlyHighlightedObject = null;
     private Material currentlyHighlightedObjectMaterial;
@@ -23,9 +28,14 @@ public class InputPointCoords : MonoBehaviour
 
     public Camera cameraObject;
 
+    public EvaluateFunction evalFuncScript;
+
+    public GameObject surfacePlanePrefab;
+
     //private Dictionary<string, GameObject> pointsDict = new Dictionary<string, GameObject>();
     private Dictionary<GameObject, string> pointsDict = new Dictionary<GameObject, string>();
     private Dictionary<GameObject, string> lineSegmentsDict = new Dictionary<GameObject, string>();
+    private Dictionary<GameObject, string> functionsDict = new Dictionary<GameObject, string>();
 
     private int createLineSegmentMode = 0;
     private GameObject firstLineSegmentSegment;
@@ -139,9 +149,14 @@ public class InputPointCoords : MonoBehaviour
         return null;
     }
 
-    bool isValidPointName (string wantedName)
+    bool IsValidPointName (string wantedName)
     {
         return wantedName.Length > 0 && char.IsLetter(wantedName[0]);
+    }
+
+    bool IsValidFunctionName (string wantedName)
+    {
+        return IsValidPointName(wantedName);
     }
 
     bool PointNameTaken (string query)
@@ -156,10 +171,22 @@ public class InputPointCoords : MonoBehaviour
         return false;
     }
 
+    bool FunctionNameTaken(string query)
+    {
+        foreach (var functionName in functionsDict.Values)
+        {
+            if (query == functionName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool ParseAndInstantiatePoint ()
     {
         string wantedName = pointNameInputField.text;
-        if ((wantedName == "") || (!isValidPointName(wantedName)) || (PointNameTaken(wantedName)))
+        if ((wantedName == "") || (!IsValidPointName(wantedName)) || (PointNameTaken(wantedName)))
         {
             UnityEngine.Debug.Log("bad point name!!");
             return false;
@@ -234,10 +261,55 @@ public class InputPointCoords : MonoBehaviour
         createLineSegmentMode = 1;
     }
 
+    bool GraphRequestedSurface ()
+    {
+        string functionNameQuery = functionNameInputField.text;
+        if ((functionNameQuery == "") || (!IsValidFunctionName(functionNameQuery)) || (FunctionNameTaken(functionNameQuery)))
+        {
+            UnityEngine.Debug.Log("bad function name!!");
+            return false;
+        }
+        string query = functionInputField.text;
+        query = query.Trim();
+
+        //float res = evalFuncScript.EvalFunc(query);
+        //UnityEngine.Debug.Log(res);
+        float x, y, z;
+        GameObject oneSurfacePlane;
+        GameObject specificFunctionParent = new GameObject();
+        specificFunctionParent.name = "Function " + functionNameQuery;
+        specificFunctionParent.transform.parent = functionsParent.transform;
+
+        float partialX, partialY;
+
+        for (x = 0; x < 10; x++)
+        {
+            for (y = 0; y < 10; y++)
+            {
+                z = evalFuncScript.EvalFunc(query, x, y);
+                Vector3 pointPos = new Vector3(x, y, z);
+                //Instantiate(pointPrefab, pointPos, Quaternion.identity);
+                partialX = evalFuncScript.PartialOfX(query, x, y);
+                partialY = evalFuncScript.PartialOfY(query, x, y);
+                Quaternion pointRotation = Quaternion.Euler(0, 0, 0);
+                oneSurfacePlane = Instantiate(surfacePlanePrefab, pointPos, pointRotation);
+                oneSurfacePlane.transform.parent = specificFunctionParent.transform;
+            }
+        }
+
+        return true;
+    }
+
+    void TryToCreateFunction ()
+    {
+        GraphRequestedSurface();
+    }
+
     void Start()
     {
         createPointButton.GetComponent<Button>().onClick.AddListener(TryToInstantiatePoint);
         createLineSegmentButton.GetComponent<Button>().onClick.AddListener(TryToCreateLineSegment);
+        createFunctionButton.GetComponent<Button>().onClick.AddListener(TryToCreateFunction);
     }
 
     void Update()
