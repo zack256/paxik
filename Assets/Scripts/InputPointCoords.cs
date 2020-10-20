@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;   // with this library gotta use UnityEngine.Debug 
 using System.Security.Cryptography;
@@ -274,25 +275,45 @@ public class InputPointCoords : MonoBehaviour
 
         //float res = evalFuncScript.EvalFunc(query);
         //UnityEngine.Debug.Log(res);
-        float x, y, z;
         GameObject oneSurfacePlane;
         GameObject specificFunctionParent = new GameObject();
         specificFunctionParent.name = "Function " + functionNameQuery;
         specificFunctionParent.transform.parent = functionsParent.transform;
 
         float partialX, partialY;
+        int surfaceIterations = 200;
+        float xStart = -50;
+        float yStart = -50;
+        float xEnd = 50;
+        float yEnd = 50;
+        float xStep = (xEnd - xStart) / surfaceIterations;
+        float yStep = (yEnd - yStart) / surfaceIterations;
+        float x, y, z;
+        int i, j;
 
-        for (x = 0; x < 10; x++)
+        for (i = 0; i < surfaceIterations; i++)
         {
-            for (y = 0; y < 10; y++)
+            x = i * xStep;
+            for (j = 0; j < surfaceIterations; j++)
             {
+                y = j * yStep;
                 z = evalFuncScript.EvalFunc(query, x, y);
-                Vector3 pointPos = new Vector3(x, y, z);
-                //Instantiate(pointPrefab, pointPos, Quaternion.identity);
+                Vector3 planePos = new Vector3(x, y, z);
                 partialX = evalFuncScript.PartialOfX(query, x, y);
                 partialY = evalFuncScript.PartialOfY(query, x, y);
-                Quaternion pointRotation = Quaternion.Euler(0, 0, 0);
-                oneSurfacePlane = Instantiate(surfacePlanePrefab, pointPos, pointRotation);
+                oneSurfacePlane = Instantiate(surfacePlanePrefab, planePos, Quaternion.identity);
+                //oneSurfacePlane.transform.rotation = Quaternion.AngleAxis(45, new Vector3(0, 0, 1));
+                //oneSurfacePlane.transform.rotation = Quaternion.AngleAxis(90, oneSurfacePlane.transform.right);
+                float dotX = Vector3.Dot(new Vector3(0, 0, 1), new Vector3(1, 0, partialX));
+                float dotY = Vector3.Dot(new Vector3(0, 0, 1), new Vector3(0, 1, partialY));
+                float lhsX = dotX / Mathf.Pow(1 + Mathf.Pow(partialX, 2), 0.5f);
+                float lhsY = dotY / Mathf.Pow(1 + Mathf.Pow(partialY, 2), 0.5f);
+                float angleFromPartialXInDegrees = Mathf.Acos(lhsX);
+                float angleFromPartialYInDegrees = Mathf.Acos(lhsY);
+                float angleFromPartialX = angleFromPartialXInDegrees * (180 / Mathf.PI);
+                float angleFromPartialY = angleFromPartialYInDegrees * (180 / Mathf.PI);
+                oneSurfacePlane.transform.rotation = Quaternion.AngleAxis(angleFromPartialX, oneSurfacePlane.transform.up);
+                oneSurfacePlane.transform.rotation = Quaternion.AngleAxis(angleFromPartialY, oneSurfacePlane.transform.right);
                 oneSurfacePlane.transform.parent = specificFunctionParent.transform;
             }
         }
