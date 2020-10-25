@@ -298,7 +298,9 @@ public class InputPointCoords : MonoBehaviour
             {
                 y = j * yStep;
                 z = evalFuncScript.EvalFunc(query, x, y);
-                Vector3 planePos = new Vector3(x, y, z);
+                //Vector3 planePos = new Vector3(x, y, z);
+                Vector3 planePos = new Vector3(x, y, -z);
+                //Vector3 planePos = new Vector3(x, z, y);    // yz flip
                 partialX = evalFuncScript.PartialOfX(query, x, y);
                 partialY = evalFuncScript.PartialOfY(query, x, y);
                 oneSurfacePlane = Instantiate(surfacePlanePrefab, planePos, Quaternion.identity);
